@@ -14,6 +14,8 @@ import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
+from .restapis import get_request, analyze_review_sentiments, post_review
+from django.contrib.auth.decorators import login_required
 
 
 # Get an instance of a logger
@@ -98,19 +100,80 @@ def get_cars(request):
 
     return JsonResponse({"CarModels": cars})
 
-# # Update the `get_dealerships` view to render the index page with
-# a list of dealerships
-# def get_dealerships(request):
-# ...
+def get_dealerships(request, state="All"):
+    if state == "All":
+        endpoint = "/fetchDealers"
+    else:
+        endpoint = f"/fetchDealers/{state}"
+    
+    dealerships = get_request(endpoint)
+    
+    return JsonResponse({"status": 200, "dealers": dealerships})
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
-# def get_dealer_reviews(request,dealer_id):
-# ...
+def get_dealer_reviews(request, dealer_id):
+    """Fetch reviews of a dealer by dealer_id and analyze sentiments."""
+    endpoint = f"/fetchReviews/dealer/{dealer_id}"
+    
+    # Fetch reviews from backend API
+    reviews = get_request(endpoint)
+
+    if not reviews:
+        return JsonResponse({"status": 404, "message": "No reviews found for this dealer."})
+
+    analyzed_reviews = []
+    
+    for review in reviews:
+        sentiment_result = analyze_review_sentiments(review["review"])
+        sentiment = sentiment_result.get("label") if sentiment_result else "neutral"
+
+        review_detail = {
+            "id": review.get("id"),
+            "name": review.get("name"),
+            "dealership": review.get("dealership"),
+            "review": review.get("review"),
+            "purchase": review.get("purchase"),
+            "purchase_date": review.get("purchase_date"),
+            "car_make": review.get("car_make"),
+            "car_model": review.get("car_model"),
+            "car_year": review.get("car_year"),
+            "sentiment": sentiment  # Add sentiment analysis result here
+        }
+        analyzed_reviews.append(review_detail)
+
+    return JsonResponse({"status": 200, "reviews": analyzed_reviews})
 
 # Create a `get_dealer_details` view to render the dealer details
-# def get_dealer_details(request, dealer_id):
-# ...
+def get_dealer_details(request, dealer_id):
+    """Fetch details of a dealer by dealer_id."""
+    endpoint = f"/fetchDealer/{dealer_id}"
+    
+    dealer_details = get_request(endpoint)
+
+    return JsonResponse({"status": 200, "dealer": dealer_details})
 
 # Create a `add_review` view to submit a review
-# def add_review(request):
-# ...
+@csrf_exempt
+@login_required(login_url="/login")  # Ensure user authentication
+def add_review(request):
+    """Handles user review submission for a dealer."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Parse JSON request body
+
+            # Call post_review function to send data to backend API
+            response = post_review(data)
+
+            # Return success if response is valid
+            if response and response.get("id"):
+                return JsonResponse({"status": 200, "message": "Review submitted successfully!"})
+
+            return JsonResponse({"status": 401, "message": "Error in posting review"})
+
+        except json.JSONDecodeError:
+            return JsonResponse({"status": 400, "message": "Invalid JSON format"})
+
+        except Exception as e:
+            return JsonResponse({"status": 500, "message": str(e)})
+
+    return JsonResponse({"status": 405, "message": "Invalid request method"})
