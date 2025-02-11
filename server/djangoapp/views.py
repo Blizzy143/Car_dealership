@@ -7,13 +7,13 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import logout
 from django.contrib import messages
 from datetime import datetime
-
+from .models import CarMake, CarModel
 from django.http import JsonResponse
 from django.contrib.auth import login, authenticate
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
-# from .populate import initiate
+from .populate import initiate
 
 
 # Get an instance of a logger
@@ -84,6 +84,19 @@ def registration(request):
             return JsonResponse({"status": False, "error": str(e)}, status=500)
 
     return JsonResponse({"status": False, "error": "Invalid request method"}, status=405)
+
+def get_cars(request):
+    count = CarMake.objects.filter().count()
+    print(count)  # Debugging: Check the count in logs
+    if count == 0:
+        initiate()  # Populate the database if empty
+
+    car_models = CarModel.objects.select_related('car_make')
+    cars = []
+    for car_model in car_models:
+        cars.append({"CarModel": car_model.name, "CarMake": car_model.car_make.name})
+
+    return JsonResponse({"CarModels": cars})
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
