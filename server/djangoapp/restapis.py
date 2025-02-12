@@ -46,7 +46,7 @@ def analyze_review_sentiments(text):
 
 def post_review(data_dict):
     """Sends a new dealer review to the backend API."""
-    request_url = f"{backend_url}/insert_review"  
+    request_url = f"{backend_url}/insert_review"
 
     try:
         response = requests.post(request_url, json=data_dict)
