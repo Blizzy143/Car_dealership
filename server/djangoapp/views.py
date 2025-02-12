@@ -200,7 +200,7 @@ def add_review(request):
             print("📌 Express API Response:", response)  # ✅ Debugging log
 
             # Return success if response is valid
-            if response and response.get("id"):  # <-- Ensure Express returns an `id`
+            if response and response.get("id"):
                 return JsonResponse(
                     {
                         "status": 200,
