@@ -112,45 +112,32 @@ def get_dealerships(request, state="All"):
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
 def get_dealer_reviews(request, dealer_id):
-    """Fetch reviews of a dealer by dealer_id and analyze sentiments."""
+    print(f"Fetching reviews for dealer ID: {dealer_id}")  # Debugging log
     endpoint = f"/fetchReviews/dealer/{dealer_id}"
-    
-    # Fetch reviews from backend API
     reviews = get_request(endpoint)
 
-    if not reviews:
-        return JsonResponse({"status": 404, "message": "No reviews found for this dealer."})
+    print(f"Reviews Response: {reviews}")  # ✅ Add this debug log
 
-    analyzed_reviews = []
-    
-    for review in reviews:
-        sentiment_result = analyze_review_sentiments(review["review"])
-        sentiment = sentiment_result.get("label") if sentiment_result else "neutral"
-
-        review_detail = {
-            "id": review.get("id"),
-            "name": review.get("name"),
-            "dealership": review.get("dealership"),
-            "review": review.get("review"),
-            "purchase": review.get("purchase"),
-            "purchase_date": review.get("purchase_date"),
-            "car_make": review.get("car_make"),
-            "car_model": review.get("car_model"),
-            "car_year": review.get("car_year"),
-            "sentiment": sentiment  # Add sentiment analysis result here
-        }
-        analyzed_reviews.append(review_detail)
-
-    return JsonResponse({"status": 200, "reviews": analyzed_reviews})
-
+    if reviews:
+        return JsonResponse({"status": 200, "reviews": reviews})
+    else:
+        return JsonResponse({"status": 404, "error": "No reviews found"}, status=404)
 # Create a `get_dealer_details` view to render the dealer details
 def get_dealer_details(request, dealer_id):
-    """Fetch details of a dealer by dealer_id."""
+    print(f"Fetching dealer details for ID: {dealer_id}")  # Debugging log
     endpoint = f"/fetchDealer/{dealer_id}"
-    
-    dealer_details = get_request(endpoint)
+    dealer = get_request(endpoint)
 
-    return JsonResponse({"status": 200, "dealer": dealer_details})
+    if dealer and isinstance(dealer, dict):  # Ensure dealer is a dictionary
+        # ✅ Add debugging print statements
+        print("Dealer API Response from Backend:", dealer)  
+
+        dealer["full_name"] = dealer.get("full_name", f"{dealer.get('city', '')} {dealer.get('state', '')}")
+
+        return JsonResponse({"status": 200, "dealer": dealer})
+    else:
+        print("❌ Dealer API Response is empty or invalid")
+        return JsonResponse({"status": 404, "error": "Dealer not found"}, status=404)
 
 # Create a `add_review` view to submit a review
 @csrf_exempt
