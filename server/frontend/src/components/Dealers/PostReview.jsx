@@ -48,22 +48,24 @@ const PostReview = () => {
     console.log("Review JSON:", jsoninput);
     
     try {
-      const res = await fetch(review_url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsoninput,
-      });
+  const res = await fetch(review_url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: jsoninput,
+  });
 
-      const json = await res.json();
-      if (json.status === 200) {
-        window.location.href = window.location.origin + "/dealer/" + id;
-      } else {
-        alert("Failed to submit review. Try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Network error. Please try again.");
-    }
+  const json = await res.json();
+  console.log("✅ Server Response:", json); // Debugging log
+
+  if (json.status === 200 || res.status === 201) {  // ✅ Accept both 200 & 201
+    window.location.href = window.location.origin + "/dealer/" + id;
+  } else {
+    alert("Failed to submit review. Try again."); // ❌ This is being wrongly triggered
+  }
+} catch (error) {
+  console.error("❌ Error submitting review:", error);
+  alert("Network error. Please try again.");
+}
   };
 
   const get_dealer = async () => {

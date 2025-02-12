@@ -192,16 +192,20 @@ def add_review(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)  # Parse JSON request body
+            print("✅ Django Received Review Data:", data)  # Debugging log
 
-            # Call post_review function to send data to backend API
+            # Call post_review function to send data to Express
             response = post_review(data)
 
+            print("📌 Express API Response:", response)  # ✅ Debugging log
+
             # Return success if response is valid
-            if response and response.get("id"):
+            if response and response.get("id"):  # <-- Ensure Express returns an `id`
                 return JsonResponse(
                     {
                         "status": 200,
-                        "message": "Review submitted successfully!"})
+                        "message": "Review submitted successfully!"
+                    })
 
             return JsonResponse({
                 "status": 401,
@@ -213,6 +217,7 @@ def add_review(request):
                 "message": "Invalid JSON format"})
 
         except Exception as e:
+            print("❌ Error in Django:", str(e))  # Debugging log
             return JsonResponse({"status": 500, "message": str(e)})
 
     return JsonResponse({"status": 405, "message": "Invalid request method"})
