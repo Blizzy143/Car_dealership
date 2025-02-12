@@ -2,19 +2,19 @@
 
 import json
 import logging
-from datetime import datetime
+#from datetime import datetime
 
-from django.contrib import messages
+#from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+#from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+#from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import CarMake, CarModel
 from .populate import initiate
-from .restapis import analyze_review_sentiments, get_request, post_review
+#from .restapis import analyze_review_sentiments, get_request, post_review
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -75,12 +75,14 @@ def registration(request):
             # Check if user already exists
             if User.objects.filter(username=username).exists():
                 return JsonResponse(
-                    {"status": False, "error": "Username already exists"}, status=400
+                    {"status": False, "error": "Username already exists"}, 
+                    status=400
                 )
 
             if User.objects.filter(email=email).exists():
                 return JsonResponse(
-                    {"status": False, "error": "Email already registered"}, status=400
+                    {"status": False, "error": "Email already registered"}, 
+                    status=400
                 )
 
             # Create and save the user
@@ -96,7 +98,8 @@ def registration(request):
             # Automatically log in the new user
             login(request, user)
 
-            return JsonResponse({"status": True, "userName": user.username}, status=201)
+            return JsonResponse({"status": True, 
+            "userName": user.username}, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse(
@@ -120,7 +123,8 @@ def get_cars(request):
     car_models = CarModel.objects.select_related("car_make")
     cars = []
     for car_model in car_models:
-        cars.append({"CarModel": car_model.name, "CarMake": car_model.car_make.name})
+        cars.append({"CarModel": car_model.name,
+         "CarMake": car_model.car_make.name})
 
     return JsonResponse({"CarModels": cars})
 
@@ -145,9 +149,11 @@ def get_dealer_reviews(request, dealer_id):
     print(f"Reviews Response: {reviews}")  # ✅ Add this debug log
 
     if reviews:
-        return JsonResponse({"status": 200, "reviews": reviews})
+        return JsonResponse({"status": 200, 
+        "reviews": reviews})
     else:
-        return JsonResponse({"status": 404, "error": "No reviews found"}, status=404)
+        return JsonResponse({"status": 404, 
+        "error": "No reviews found"}, status=404)
 
 
 # Create a `get_dealer_details` view to render the dealer details
@@ -156,7 +162,7 @@ def get_dealer_details(request, dealer_id):
     endpoint = f"/fetchDealer/{dealer_id}"
     dealer = get_request(endpoint)
 
-    if dealer and isinstance(dealer, dict):  # Ensure dealer is a dictionary
+    if dealer and isinstance(dealer, dict):  
         # ✅ Add debugging print statements
         print("Dealer API Response from Backend:", dealer)
 
@@ -167,7 +173,8 @@ def get_dealer_details(request, dealer_id):
         return JsonResponse({"status": 200, "dealer": dealer})
     else:
         print("❌ Dealer API Response is empty or invalid")
-        return JsonResponse({"status": 404, "error": "Dealer not found"}, status=404)
+        return JsonResponse({"status": 404, 
+        "error": "Dealer not found"}, status=404)
 
 
 # Create a `add_review` view to submit a review
@@ -185,15 +192,20 @@ def add_review(request):
             # Return success if response is valid
             if response and response.get("id"):
                 return JsonResponse(
-                    {"status": 200, "message": "Review submitted successfully!"}
+                    {"status": 200, 
+                    "message": "Review submitted successfully!"}
                 )
 
-            return JsonResponse({"status": 401, "message": "Error in posting review"})
+            return JsonResponse({"status": 401, 
+            "message": "Error in posting review"})
 
         except json.JSONDecodeError:
-            return JsonResponse({"status": 400, "message": "Invalid JSON format"})
+            return JsonResponse({"status": 400, 
+            "message": "Invalid JSON format"})
 
         except Exception as e:
-            return JsonResponse({"status": 500, "message": str(e)})
+            return JsonResponse({"status": 500, 
+            "message": str(e)})
 
-    return JsonResponse({"status": 405, "message": "Invalid request method"})
+    return JsonResponse({"status": 405, 
+    "message": "Invalid request method"})
