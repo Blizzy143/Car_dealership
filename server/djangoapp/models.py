@@ -27,7 +27,7 @@ class CarModel(models.Model):
     )  # Many-to-One relation
     dealer_id = models.IntegerField()  # Refers to dealer in Cloudant DB
     name = models.CharField(max_length=50)
-    car_type = models.CharField(max_length=10, 
+    car_type = models.CharField(max_length=10,
     choices=CAR_TYPES, default=SEDAN)
     year = models.IntegerField()  # Year of manufacture
 
