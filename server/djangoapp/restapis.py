@@ -1,21 +1,22 @@
 # Uncomment the imports below before you add the function code
-import requests
 import os
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-backend_url = os.getenv(
-    'backend_url', default="http://localhost:3030")
+backend_url = os.getenv("backend_url", default="http://localhost:3030")
 sentiment_analyzer_url = os.getenv(
-    'sentiment_analyzer_url',
-    default="http://localhost:5050/")
+    "sentiment_analyzer_url", default="http://localhost:5050/"
+)
+
 
 def get_request(endpoint, **kwargs):
     params = ""
     if kwargs:
         params = "&".join([f"{key}={value}" for key, value in kwargs.items()])
-    
+
     request_url = f"{backend_url}/{endpoint}?{params}"
     print(f"GET from {request_url}")
 
@@ -27,7 +28,10 @@ def get_request(endpoint, **kwargs):
         # If any error occurs
         print(f"Network exception occurred: {e}")
         return None
+
+
 # Add code for get requests to back end
+
 
 def analyze_review_sentiments(text):
     request_url = sentiment_analyzer_url + "analyze/" + text
@@ -51,7 +55,10 @@ def post_review(data_dict):
         if response.status_code == 200 or response.status_code == 201:
             return response.json()
         else:
-            return {"error": "Failed to post review", "status_code": response.status_code}
+            return {
+                "error": "Failed to post review",
+                "status_code": response.status_code,
+            }
 
     except Exception as err:
         print(f"Network exception occurred: {err}")
